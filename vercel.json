@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/promovid-gen",        "destination": "https://cc-promovidgen.vercel.app/" },
+    { "source": "/promovid-gen/:path*", "destination": "https://cc-promovidgen.vercel.app/:path*" }
+  ]
+}

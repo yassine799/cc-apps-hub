@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CC Apps — Culture Connected</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #09090a;
+      --surface:   #111113;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.18);
+      --text-1:    #f2f2f0;
+      --text-2:    rgba(242,242,240,0.55);
+      --text-3:    rgba(242,242,240,0.3);
+      --accent:    oklch(0.78 0.17 82);   /* warm amber */
+      --accent-dim:oklch(0.78 0.17 82 / 0.12);
+      --sans:      'Syne', sans-serif;
+      --mono:      'JetBrains Mono', monospace;
+    }
+
+    html { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.032;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 48px 56px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      opacity: 0;
+      animation: rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.05s forwards;
+    }
+
+    .wordmark {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .wordmark-top {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .wordmark-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-1);
+    }
+
+    .header-meta {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-align: right;
+      line-height: 1.8;
+      padding-top: 4px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 80px 56px 60px;
+      opacity: 0;
+      animation: rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s forwards;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero-title {
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 0.96;
+      color: var(--text-1);
+      max-width: 640px;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      margin-top: 22px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 440px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      margin: 0 56px;
+      height: 1px;
+      background: var(--border);
+      opacity: 0;
+      animation: rise 0.5s ease 0.28s forwards;
+    }
+
+    /* ── Grid ── */
+    .grid-section {
+      padding: 52px 56px;
+      flex: 1;
+      opacity: 0;
+      animation: rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s forwards;
+    }
+
+    .grid-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 28px;
+    }
+
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── App card ── */
+    .app-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 28px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .app-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 0%, var(--accent-dim) 0%, transparent 65%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .app-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+    }
+    .app-card:hover::before { opacity: 1; }
+
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-1);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .card-desc {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-2);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 28px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-launch {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: gap 0.2s;
+    }
+    .app-card:hover .card-launch { gap: 12px; }
+
+    .card-launch-arrow {
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+      position: relative;
+      transition: width 0.2s;
+    }
+    .card-launch-arrow::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -3px;
+      width: 6px;
+      height: 6px;
+      border-right: 1px solid var(--accent);
+      border-top: 1px solid var(--accent);
+      transform: rotate(45deg);
+    }
+    .app-card:hover .card-launch-arrow { width: 28px; }
+
+    .card-status {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #3c9e5a;
+      box-shadow: 0 0 6px #3c9e5a99;
+    }
+
+    /* ── Soon card ── */
+    .app-card.soon {
+      opacity: 0.42;
+      pointer-events: none;
+    }
+    .app-card.soon .card-status-dot {
+      background: var(--text-3);
+      box-shadow: none;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px 56px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
+      animation: rise 0.5s ease 0.5s forwards;
+    }
+
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+    }
+
+    .footer-env {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Animation ── */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header, .hero, .divider, .grid-section, footer {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .divider { margin: 0 24px; }
+      .hero { padding-top: 52px; padding-bottom: 40px; }
+      .grid-section { padding-top: 36px; }
+      .apps-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="wordmark">
+      <div class="wordmark-top">Culture Connected</div>
+      <div class="wordmark-name">CC / Apps</div>
+    </div>
+    <div class="header-meta">
+      Internal toolkit<br/>
+      apps.cultureconnected.agency
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-label">Agency tools</div>
+    <h1 class="hero-title">Built for<br/><em>culture.</em></h1>
+    <p class="hero-sub">A suite of production tools for events, artists, and campaigns — purpose-built for the Culture Connected team.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="grid-section">
+    <div class="grid-label">Available apps</div>
+    <div class="apps-grid">
+
+      <a class="app-card" href="/promovid-gen">
+        <div class="card-tag">Video · Production</div>
+        <div class="card-title">PromoVid<br/>Generator</div>
+        <div class="card-desc">Drop a vertical clip, add artist name, venue, date and logo — export a polished MP4 promo in seconds. 9:16 · 4:5 · H.264</div>
+        <div class="card-footer">
+          <div class="card-launch">
+            Launch
+            <div class="card-launch-arrow"></div>
+          </div>
+          <div class="card-status">
+            <div class="card-status-dot"></div>
+            Live
+          </div>
+        </div>
+      </a>
+
+      <div class="app-card soon">
+        <div class="card-tag">Content · Social</div>
+        <div class="card-title">Event<br/>Flyer Gen</div>
+        <div class="card-desc">Generate branded static flyers for Instagram and print from a shared event template library.</div>
+        <div class="card-footer">
+          <div class="card-launch">Coming soon</div>
+          <div class="card-status">
+            <div class="card-status-dot"></div>
+            Soon
+          </div>
+        </div>
+      </div>
+
+      <div class="app-card soon">
+        <div class="card-tag">Booking · Admin</div>
+        <div class="card-title">Press Kit<br/>Builder</div>
+        <div class="card-desc">Compile artist bios, photos, and rider documents into a shareable PDF press kit with one click.</div>
+        <div class="card-footer">
+          <div class="card-launch">Coming soon</div>
+          <div class="card-status">
+            <div class="card-status-dot"></div>
+            Soon
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-copy">© 2026 Culture Connected Agency</div>
+    <div class="footer-env">v1.0 · internal</div>
+  </footer>
+
+</body>
+</html>

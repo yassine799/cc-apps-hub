@@ -1,6 +1,8 @@
 {
   "redirects": [
-    { "source": "/cc-promovid",        "destination": "https://cc-promovidgen.vercel.app/", "permanent": false },
-    { "source": "/cc-promovid/:path*", "destination": "https://cc-promovidgen.vercel.app/:path*", "permanent": false }
+    { "source": "/cc-promovid",             "destination": "https://cc-promovidgen.vercel.app/",      "permanent": false },
+    { "source": "/cc-promovid/:path*",      "destination": "https://cc-promovidgen.vercel.app/:path*","permanent": false },
+    { "source": "/cc-tour-caption",         "destination": "https://cc-tour-caption.vercel.app/",     "permanent": false },
+    { "source": "/cc-tour-caption/:path*",  "destination": "https://cc-tour-caption.vercel.app/:path*","permanent": false }
   ]
 }

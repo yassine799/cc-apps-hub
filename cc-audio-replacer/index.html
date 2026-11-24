@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio replacer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/cc-audio-replacer/style.css">
+<script type="importmap">
+{"imports":{
+"mediabunny":"https://cdn.jsdelivr.net/npm/mediabunny@1.65.2/dist/bundles/mediabunny.min.mjs",
+"@mediabunny/aac-encoder":"https://cdn.jsdelivr.net/npm/@mediabunny/aac-encoder@1.65.2/dist/bundles/mediabunny-aac-encoder.min.mjs"
+}}
+</script>
+</head>
+<body data-view="add">
+<header class="top">
+  <svg viewBox="0 0 64 64" role="img" aria-label="Culture Connected"><circle cx="25" cy="32" r="14" fill="none" stroke="#a9141e" stroke-width="6"/><circle cx="39" cy="32" r="14" fill="none" stroke="#a9141e" stroke-width="6"/></svg>
+  <h1>Audio replacer</h1>
+  <span class="sub">Official audio for music videos · files stay on this computer</span>
+  <div class="acts" data-for="add"><button type="button" class="cc-btn cc-btn-primary" id="matchBtn" disabled>Match audio</button></div>
+  <div class="acts" data-for="match" hidden><button type="button" class="cc-btn" id="cancelMatch">Cancel</button></div>
+  <div class="acts" data-for="pick" hidden><button type="button" class="cc-btn" id="pickBack">Back</button><button type="button" class="cc-btn cc-btn-primary" id="pickUse">Use this section</button></div>
+  <div class="acts" data-for="review" hidden><button type="button" class="cc-btn" id="startOver">Start over</button><button type="button" class="cc-btn cc-btn-primary" id="exportBtn">Export video</button></div>
+  <div class="acts" data-for="export" hidden><button type="button" class="cc-btn" id="exportBack">Back to sync check</button><button type="button" class="cc-btn" id="another">Start another video</button><button type="button" class="cc-btn cc-btn-primary" id="saveBtn" disabled>Save video</button></div>
+</header>
+
+<div class="app">
+  <aside class="pane">
+    <p class="cc-banner" id="banner" style="margin:16px" hidden></p>
+
+    <div data-for="add">
+      <section class="sec">
+        <h2>Music video</h2>
+        <button type="button" class="cc-drop" id="videoDrop"><strong>Add music video</strong><span>MP4 or MOV with its live audio</span></button>
+        <div class="file" id="videoFile" hidden><div><div class="nm"></div><div class="mt"></div></div><button type="button" class="cc-x" aria-label="Remove music video">×</button></div>
+        <p class="cc-hint cc-hint-error" id="videoErr" role="alert" hidden></p>
+        <input type="file" id="videoIn" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm" hidden>
+      </section>
+      <section class="sec">
+        <h2>Official audio</h2>
+        <button type="button" class="cc-drop" id="songDrop"><strong>Add official WAV</strong><span>The full song, so any section can be matched</span></button>
+        <div class="file" id="songFile" hidden><div><div class="nm"></div><div class="mt"></div></div><button type="button" class="cc-x" aria-label="Remove official audio">×</button></div>
+        <p class="cc-hint cc-hint-error" id="songErr" role="alert" hidden></p>
+        <input type="file" id="songIn" accept="audio/*,.wav,.aif,.aiff,.flac" hidden>
+      </section>
+      <p class="mt" id="addStatus" style="padding:16px" role="status">Add a music video and the official WAV to start.</p>
+    </div>
+
+    <div data-for="match" hidden>
+      <section class="sec">
+        <h2>Matching the official audio</h2>
+        <div class="cc-pg" role="progressbar" aria-label="Matching progress" aria-valuemin="0" aria-valuemax="100" id="matchPg"><div style="width:0"></div></div>
+        <p class="cc-hint cc-hint-error" id="matchErr" role="alert" hidden></p>
+      </section>
+      <ol class="steps" id="steps">
+        <li><span>Compare tempo</span><span class="cc-st"></span><span class="mt"></span></li>
+        <li><span>Find the section</span><span class="cc-st"></span><span class="mt"></span></li>
+        <li><span>Check for drift</span><span class="cc-st"></span><span class="mt"></span></li>
+        <li><span>Adjust the official audio</span><span class="cc-st"></span><span class="mt"></span></li>
+      </ol>
+    </div>
+
+    <div data-for="pick" hidden>
+      <section class="sec"><h2 id="pickTitle"></h2><p class="mt" id="pickNote"></p></section>
+      <div class="rows" id="rows" role="radiogroup" aria-label="Matching section"></div>
+      <section class="sec">
+        <div class="cc-field">
+          <label for="manual">Set the start yourself <span class="cc-opt">optional</span></label>
+          <input id="manual" class="cc-input" type="text" placeholder="1:12.340" autocomplete="off">
+          <div class="cc-hint" id="manualHint">Time in the official song where the video begins. The sync is refined around it.</div>
+        </div>
+      </section>
+    </div>
+
+    <div data-for="review" hidden>
+      <section class="sec">
+        <h2>Files</h2>
+        <div><div class="nm" id="rvVideo"></div><div class="mt" id="rvVideoMeta"></div></div>
+        <div><div class="nm" id="rvSong"></div><div class="mt" id="rvSongMeta"></div></div>
+      </section>
+      <section class="sec">
+        <h2>Tempo</h2>
+        <dl class="kv">
+          <div><dt>Live audio</dt><dd id="bpmLive"></dd></div>
+          <div><dt>Official audio</dt><dd id="bpmSong"></dd></div>
+          <div><dt>Adjustment</dt><dd id="bpmAdj"></dd></div>
+          <div><dt>Pitch</dt><dd>Original</dd></div>
+        </dl>
+      </section>
+      <section class="sec">
+        <h2>Section of the song</h2>
+        <dl class="kv">
+          <div><dt>From</dt><dd id="secFrom"></dd></div>
+          <div><dt>To</dt><dd id="secTo"></dd></div>
+          <div><dt>Length</dt><dd id="secLen"></dd></div>
+          <div><dt>Match</dt><dd id="secMatch"></dd></div>
+        </dl>
+        <button type="button" class="cc-btn cc-btn-sm" id="otherBtn" style="align-self:flex-start">Choose another section</button>
+      </section>
+      <section class="sec">
+        <h2>Mix</h2>
+        <div>
+          <label class="cc-lab" for="level">Live audio under the official</label>
+          <div class="cc-range"><input id="level" type="range" min="0" max="50" step="1" value="0"><output id="levelOut">0%</output></div>
+          <div class="cc-hint">Brings back some crowd. 0% is the official audio only.</div>
+        </div>
+        <div>
+          <div class="two">
+            <div class="cc-field"><label for="from">Official from</label><input id="from" class="cc-input" type="text" autocomplete="off"></div>
+            <div class="cc-field"><label for="to">Official to</label><input id="to" class="cc-input" type="text" autocomplete="off"></div>
+          </div>
+          <div class="cc-hint" id="rangeHint"></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Export</h2>
+        <div>
+          <div class="cc-lab">Audio in the file</div>
+          <div class="cc-seg" role="group" aria-label="Audio in the file" id="fmt"><button type="button" data-v="aac" aria-pressed="true">AAC 320 kbps</button><button type="button" data-v="pcm" aria-pressed="false">Uncompressed</button></div>
+          <div class="cc-hint" id="fmtHint"></div>
+        </div>
+      </section>
+    </div>
+
+    <div data-for="export" hidden>
+      <section class="sec">
+        <h2 id="exTitle">Writing the video</h2>
+        <div><div class="nm wrap" id="exName"></div><div class="mt" id="exMeta"></div></div>
+        <div class="cc-pg" role="progressbar" aria-label="Export progress" aria-valuemin="0" aria-valuemax="100" id="exPg"><div style="width:0"></div></div>
+        <div class="cc-st cc-st-ok" id="exReady" style="margin:0" role="status" hidden>Ready</div>
+        <p class="cc-hint cc-hint-error" id="exErr" role="alert" hidden></p>
+      </section>
+      <section class="sec"><h2>Kept from the original</h2><dl class="kv" id="exKept"></dl></section>
+      <section class="sec"><h2>New audio</h2><dl class="kv" id="exNew"></dl></section>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="monitor"><video id="video" playsinline muted hidden></video><span id="monitorText">Your video appears here.</span></div>
+
+    <ol class="how" data-for="add">
+      <li><h2>Match the tempo</h2><p>Finds the BPM of the live audio and sets the official track to the same BPM. Same BPM, no change.</p></li>
+      <li><h2>Find the section</h2><p>Locates the part of the song heard in the video and cuts it to the video’s exact length.</p></li>
+      <li><h2>Listen, then export</h2><p>Play both in sync. The export keeps your picture untouched and swaps only the audio.</p></li>
+    </ol>
+
+    <section data-for="match pick" hidden style="display:grid;gap:8px;max-width:760px">
+      <h2>Official song</h2>
+      <div class="lane tall"><canvas id="songBig"></canvas></div>
+      <div class="ruler" id="songRuler"></div>
+    </section>
+
+    <div class="bar" data-for="review" hidden>
+      <button type="button" class="cc-icon-btn" id="play" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3L13 8L5 13Z"/></svg></button>
+      <div class="cc-seg" role="group" aria-label="Listen to" id="listen"><button type="button" data-v="live" aria-pressed="false">Live</button><button type="button" data-v="both" aria-pressed="true">Both</button><button type="button" data-v="final" aria-pressed="false">Final mix</button></div>
+      <label class="cc-toggle"><input type="checkbox" id="split"><span>Live in left ear, official in right</span></label>
+      <div class="time" id="time"></div>
+    </div>
+    <div class="lanes" data-for="review" hidden>
+      <span>Song</span><div class="lane song"><canvas id="songSmall"></canvas></div>
+      <span>Live</span><div class="lane" id="laneLive"><canvas></canvas></div>
+      <span>Official</span><div class="lane" id="laneOff"><canvas></canvas></div>
+      <span></span><div class="ruler" id="ruler"><span></span><span></span><span></span></div>
+      <span>Position</span><div class="cc-range"><input type="range" id="seek" min="0" step="0.01" value="0" aria-label="Playback position"></div>
+    </div>
+    <div class="foot" data-for="review" hidden>
+      <div class="cc-seg" role="group" aria-label="Timeline view" id="zoom"><button type="button" data-v="beat" aria-pressed="true">Beat by beat</button><button type="button" data-v="all" aria-pressed="false">Whole video</button></div>
+      <div class="nudge"><span>Nudge official audio</span>
+        <button type="button" class="cc-btn cc-btn-sm" data-n="-10" aria-label="10 milliseconds earlier">−10 ms</button>
+        <button type="button" class="cc-btn cc-btn-sm" data-n="-1" aria-label="1 millisecond earlier">−1 ms</button>
+        <output id="nudgeOut">0 ms</output>
+        <button type="button" class="cc-btn cc-btn-sm" data-n="1" aria-label="1 millisecond later">+1 ms</button>
+        <button type="button" class="cc-btn cc-btn-sm" data-n="10" aria-label="10 milliseconds later">+10 ms</button>
+        <button type="button" class="cc-btn cc-btn-sm" data-n="0">Reset</button>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="cc-toast" id="toast" role="status" hidden></div>
+<script type="module" src="/cc-audio-replacer/app.js"></script>
+</body>
+</html>
